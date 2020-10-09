@@ -1,9 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-from db.base_model import BaseModel
 # Create your models here.
 
-class User(AbstractUser, BaseModel):
+class User(AbstractUser):
     '''用户模型类'''
     class Meta:
         db_table = 'df_user'
@@ -11,7 +10,7 @@ class User(AbstractUser, BaseModel):
         verbose_name_plural = verbose_name
 
 
-class Address(BaseModel):
+class Address(models.Model):
     '''地址模型类'''
     user = models.ForeignKey('User', verbose_name='所属用户', on_delete=models.CASCADE)
     receiver = models.CharField(max_length=20, verbose_name='收件人')
