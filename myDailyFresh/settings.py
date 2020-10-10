@@ -130,3 +130,13 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 
 # django 认证系统使用的模型类
 AUTH_USER_MODEL = 'user.User'
+
+
+# 发送邮件配置
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.qq.com'
+EMAIL_PORT = 25
+EMAIL_HOST_USER = '229306062@qq.com'
+EMAIL_HOST_PASSWORD = 'xdlqyeeoevjvbhah'
+EMAIL_USE_TLS = False
+EMAIL_FROM = '229306062@qq.com'
