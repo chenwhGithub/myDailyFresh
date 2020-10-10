@@ -13,7 +13,6 @@
 	</div>
 
 	<div class="login_form_bg">
-
 		<div class="login_form_wrap clearfix">
 			<div class="login_banner fl"></div>
 			<div class="slogan fl">日夜兼程 · 急速送达</div>
@@ -23,7 +22,7 @@
 					<a href="#">立即注册</a>
 				</div>
 				<div class="form_input">
-					<form method="post">
+					<form method="post" action="/user/login">
                         {% csrf_token %}
 						<input type="text" name="username" class="name_input" placeholder="请输入用户名" value="{{ username }}">
 						<div class="user_error">输入错误</div>
