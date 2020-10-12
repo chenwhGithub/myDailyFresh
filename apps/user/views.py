@@ -11,7 +11,6 @@ from .models import User
 
 # Create your views here.
 class RegisterView(View):
-
     def get(self, request):
         ''' 首页点击注册按钮，跳转到 register.html 页面 '''
         return render(request, 'register.html')
@@ -63,7 +62,6 @@ class RegisterView(View):
 
 
 class ActiveView(View):
-
     def get(self, request, token):
         ''' 点击邮件里的激活链接 '''
         serializer = Serializer(settings.SECRET_KEY, 3600)
@@ -79,7 +77,6 @@ class ActiveView(View):
 
 
 class LoginView(View):
-
     def get(self, request):
         ''' 首页点击登录按钮/邮件点击激活链接，跳转到 login.html 页面 '''
         username = ''
@@ -115,28 +112,24 @@ class LoginView(View):
 
 
 class LogoutView(View):
-
     def get(self, request):
         logout(request)
         return redirect(reverse('goods:index'))
 
 
-class CenterView(View):
-
+class InfoView(View):
     def get(self, request):
-        ''' 点击用户中心按钮，跳转到 user_center.html 页面 '''
-        return render(request, 'user_center.html')
+        ''' 点击用户中心按钮，跳转到 user_center_info.html 页面 '''
+        return render(request, 'user_center_info.html', {'page':'info'})
 
 
 class OrderView(View):
-
     def get(self, request):
-        ''' 点击用户中心-全部订单按钮，跳转到 user_order.html 页面 '''
-        return render(request, 'user_order.html')
+        ''' 点击用户中心-全部订单按钮，跳转到 user_center_order.html 页面 '''
+        return render(request, 'user_center_order.html', {'page':'order'})
 
 
 class AddressView(View):
-
     def get(self, request):
-        ''' 点击用户中心-收货地址按钮，跳转到 user_address.html 页面 '''
-        return render(request, 'user_address.html')
+        ''' 点击用户中心-收货地址按钮，跳转到 user_center_address.html 页面 '''
+        return render(request, 'user_center_address.html', {'page':'address'})
