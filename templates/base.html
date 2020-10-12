@@ -21,6 +21,8 @@
 					{% if user.is_authenticated %}
 						<div class="login_btn fl">
 							欢迎您：<em>{{ user.username }}</em>
+							<span>|</span>
+							<a href="{% url 'user:logout' %}">退出登录</a>
 						</div>
 					{% else %}
 						<div class="login_btn fl">

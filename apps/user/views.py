@@ -6,7 +6,7 @@ from django.conf import settings
 from django.core.mail import send_mail
 from django.urls import reverse
 from django.http import HttpResponse
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from .models import User
 
 # Create your views here.
@@ -112,3 +112,10 @@ class LoginView(View):
                 return render(request, 'login.html', {'errmsg': '账户尚未激活'})
         else:
             return render(request, 'login.html', {'errmsg': '用户名或密码错误'})
+
+
+class LogoutView(View):
+
+    def get(self, request):
+        logout(request)
+        return redirect(reverse('goods:index'))
