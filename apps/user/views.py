@@ -133,3 +133,10 @@ class OrderView(View):
     def get(self, request):
         ''' 点击用户中心-全部订单按钮，跳转到 user_order.html 页面 '''
         return render(request, 'user_order.html')
+
+
+class AddressView(View):
+
+    def get(self, request):
+        ''' 点击用户中心-收货地址按钮，跳转到 user_address.html 页面 '''
+        return render(request, 'user_address.html')
