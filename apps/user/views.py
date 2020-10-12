@@ -107,7 +107,7 @@ class LoginView(View):
                     response.set_cookie('username', uname, max_age=7*24*3600) # 记住用户名
                 else:
                     response.delete_cookie('username')
-                return response # 跳转到主页
+                return response # 跳转到主页，同时传递 request.user 变量到网页模板文件
             else:
                 return render(request, 'login.html', {'errmsg': '账户尚未激活'})
         else:
