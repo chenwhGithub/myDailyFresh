@@ -126,3 +126,10 @@ class CenterView(View):
     def get(self, request):
         ''' 点击用户中心按钮，跳转到 user_center.html 页面 '''
         return render(request, 'user_center.html')
+
+
+class OrderView(View):
+
+    def get(self, request):
+        ''' 点击用户中心-全部订单按钮，跳转到 user_order.html 页面 '''
+        return render(request, 'user_order.html')
