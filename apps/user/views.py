@@ -7,7 +7,7 @@ from django.core.mail import send_mail
 from django.urls import reverse
 from django.http import HttpResponse
 from django.contrib.auth import authenticate, login, logout
-from .models import User
+from .models import User, Address
 from utils.mixin import LoginRequiredMixin
 
 # Create your views here.
@@ -134,4 +134,45 @@ class OrderView(LoginRequiredMixin, View):
 class AddressView(LoginRequiredMixin, View):
     def get(self, request):
         ''' 点击用户中心-收货地址按钮，跳转到 user_center_address.html 页面 '''
-        return render(request, 'user_center_address.html', {'page':'address'})
+        user = request.user
+        addr_default = None
+        try:
+            addr_default = Address.objects.get(user=user, is_default=True)
+        except Address.DoesNotExist:
+            addr_default = None
+
+        return render(request, 'user_center_address.html', {'page':'address', 'addr_default': addr_default})
+
+    def post(self, request):
+        ''' 用户中心-收货地址页面点击提交按钮，处理表单数据 '''
+        receiver = request.POST.get('receiver')
+        addr = request.POST.get('addr')
+        zip_code = request.POST.get('zip_code')
+        phone = request.POST.get('phone')
+
+        if not all([receiver, addr, phone]):
+            return render(request, 'user_center_address.html', {'errmsg': '数据不完整'})
+
+        if not re.match(r'^1[3|4|5|7|8]{0-9}{9}$', phone):
+            return render(request, 'user_center_address.html', {'errmsg': '手机号码格式不正确'})
+
+        user = request.user
+        addr_default = None
+        try:
+            addr_default = Address.objects.get(user=user, is_default=True)
+        except Address.DoesNotExist:
+            addr_default = None
+
+        is_default = True
+        if addr_default:
+            is_default = False
+
+        Address.objects.create(user=user,
+                               receiver=receiver,
+                               addr=addr,
+                               zip_code=zip_code,
+                               phone=phone,
+                               is_default = is_default
+                               )
+
+        return redirect(reverse('user:address'))

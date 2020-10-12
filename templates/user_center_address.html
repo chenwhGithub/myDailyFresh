@@ -7,12 +7,17 @@
 		<div class="site_con">
 			<dl>
 				<dt>当前地址：</dt>
-				<dd>北京市 海淀区 东北旺西路8号中关村软件园 （张三 收） 182****7528</dd>
+				{% if addr_default %}
+					<dd>{{ addr_default.addr }} （{{ addr_default.receiver }} 收） {{ addr_default.phone }}</dd>
+				{% else %}
+					<dd>无默认收货地址</dd>
+				{% endif %}
 			</dl>
 		</div>
 		<h3 class="common_title2">编辑地址</h3>
 		<div class="site_con">
-			<form method="post">
+			<form method="post" action="/user/address">
+				{% csrf_token %}
 				<div class="form_group">
 					<label>收件人：</label>
 					<input type="text" name="receiver">
@@ -31,6 +36,7 @@
 				</div>
 
 				<input type="submit" name="" value="提交" class="info_submit">
+				{{ errmsg }}
 			</form>
 		</div>
 	</div>
