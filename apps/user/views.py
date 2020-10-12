@@ -8,6 +8,7 @@ from django.urls import reverse
 from django.http import HttpResponse
 from django.contrib.auth import authenticate, login, logout
 from .models import User
+from utils.mixin import LoginRequiredMixin
 
 # Create your views here.
 class RegisterView(View):
@@ -99,7 +100,8 @@ class LoginView(View):
         if user is not None:
             if user.is_active:
                 login(request, user)
-                response = redirect(reverse('goods:index'))
+                next_url = request.GET.get('next', reverse('goods:index'))
+                response = redirect(next_url)
                 if rmb == 'on':
                     response.set_cookie('username', uname, max_age=7*24*3600) # 记住用户名
                 else:
@@ -117,19 +119,19 @@ class LogoutView(View):
         return redirect(reverse('goods:index'))
 
 
-class InfoView(View):
+class InfoView(LoginRequiredMixin, View):
     def get(self, request):
         ''' 点击用户中心按钮，跳转到 user_center_info.html 页面 '''
         return render(request, 'user_center_info.html', {'page':'info'})
 
 
-class OrderView(View):
+class OrderView(LoginRequiredMixin, View):
     def get(self, request):
         ''' 点击用户中心-全部订单按钮，跳转到 user_center_order.html 页面 '''
         return render(request, 'user_center_order.html', {'page':'order'})
 
 
-class AddressView(View):
+class AddressView(LoginRequiredMixin, View):
     def get(self, request):
         ''' 点击用户中心-收货地址按钮，跳转到 user_center_address.html 页面 '''
         return render(request, 'user_center_address.html', {'page':'address'})
