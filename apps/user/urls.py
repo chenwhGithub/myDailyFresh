@@ -1,6 +1,6 @@
 from django.urls import path
 from django.conf.urls import url
-from .views import RegisterView, ActiveView, LoginView, LogoutView
+from .views import RegisterView, ActiveView, LoginView, LogoutView, CenterView
 
 app_name = 'user'
 urlpatterns = [
@@ -9,4 +9,5 @@ urlpatterns = [
     url(r"^active/(?P<token>.*)/$", ActiveView.as_view(), name='active'),
     path('login', LoginView.as_view(), name='login'),
     path('logout', LogoutView.as_view(), name='logout'),
+    path('center', CenterView.as_view(), name='center'),
 ]

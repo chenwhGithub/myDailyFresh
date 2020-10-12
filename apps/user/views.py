@@ -119,3 +119,10 @@ class LogoutView(View):
     def get(self, request):
         logout(request)
         return redirect(reverse('goods:index'))
+
+
+class CenterView(View):
+
+    def get(self, request):
+        ''' 点击用户中心按钮，跳转到 user_center.html 页面 '''
+        return render(request, 'user_center.html')
