@@ -122,7 +122,14 @@ class LogoutView(View):
 class InfoView(LoginRequiredMixin, View):
     def get(self, request):
         ''' 点击用户中心按钮，跳转到 user_center_info.html 页面 '''
-        return render(request, 'user_center_info.html', {'page':'info'})
+        user = request.user
+        addr_default = None
+        try:
+            addr_default = Address.objects.get(user=user, is_default=True)
+        except Address.DoesNotExist:
+            addr_default = None
+
+        return render(request, 'user_center_info.html', {'page':'info', 'addr_default': addr_default})
 
 
 class OrderView(LoginRequiredMixin, View):

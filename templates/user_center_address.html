@@ -8,7 +8,7 @@
 			<dl>
 				<dt>当前地址：</dt>
 				{% if addr_default %}
-					<dd>{{ addr_default.addr }} （{{ addr_default.receiver }} 收） {{ addr_default.phone }}</dd>
+					<dd>{{ addr_default.addr }} {{ addr_default.receiver }} 收 {{ addr_default.phone }}</dd>
 				{% else %}
 					<dd>无默认收货地址</dd>
 				{% endif %}
