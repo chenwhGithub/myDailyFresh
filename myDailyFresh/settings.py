@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'goods',
     'order',
     'user',
+    'ckeditor', # pip install django-ckeditor 富文本类型支持
 ]
 
 MIDDLEWARE = [
