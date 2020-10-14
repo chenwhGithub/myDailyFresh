@@ -144,3 +144,18 @@ EMAIL_FROM = '229306062@qq.com'
 
 # 未登录情况下点击用户相关操作，跳转到登录页面
 LOGIN_URL = '/user/login'
+
+
+# 使用 redis 作为缓存
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    }
+}
+# 配合上面 CACHES 设置，将 session 存储在 redis 缓存中，默认在数据表 django_session
+SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+SESSION_CACHE_ALIAS = "default"
