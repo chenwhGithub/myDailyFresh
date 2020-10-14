@@ -9,6 +9,7 @@ from django.http import HttpResponse
 from django.contrib.auth import authenticate, login, logout
 from .models import User, Address
 from utils.mixin import LoginRequiredMixin
+from celery_tasks.tasks import send_register_active_email
 
 # Create your views here.
 class RegisterView(View):
@@ -48,16 +49,10 @@ class RegisterView(View):
         user.is_active = 0 # 用户尚未激活，通过邮件链接激活
         user.save() # 数据库中增加表项
 
-        serializer = Serializer(settings.SECRET_KEY, 3600)
+        serializer = Serializer(settings.SECRET_KEY, 3600) # 对 user.id 加密后生成激活链接
         info = {'confirm': user.id}
         token = serializer.dumps(info)
-        token = token.decode()
-        subject = '天天生鲜欢迎你'
-        message = ''
-        sender = settings.EMAIL_FROM
-        receiver = [email]
-        html_message = '<h1>%s, 欢迎您成为天天生鲜注册会员</h1>请点击下面链接激活您的账户<br/><br>　<a href="http://127.0.0.1:8000/user/active/%s">http://127.0.0.1:8000/user/active/%s</a>'%(uname, token, token)
-        send_mail(subject, message=message, from_email=sender, recipient_list=receiver, html_message=html_message)
+        send_register_active_email.delay(email, uname, token.decode())
 
         return redirect(reverse('goods:index'))
 

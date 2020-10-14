@@ -138,8 +138,7 @@ EMAIL_HOST = 'smtp.qq.com'
 EMAIL_PORT = 25
 EMAIL_HOST_USER = '229306062@qq.com'
 EMAIL_HOST_PASSWORD = 'xdlqyeeoevjvbhah'
-EMAIL_USE_TLS = False
-EMAIL_FROM = '229306062@qq.com'
+EMAIL_FROM = 'myDailyFresh<229306062@qq.com>'
 
 
 # 未登录情况下点击用户相关操作，跳转到登录页面
