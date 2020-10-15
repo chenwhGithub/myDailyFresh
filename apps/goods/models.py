@@ -6,7 +6,7 @@ class GoodsType(models.Model):
     '''商品类型模型类'''
     name = models.CharField(max_length=20, verbose_name='种类名称')
     logo = models.CharField(max_length=20, verbose_name='标识')
-    # 工程根目录生成 type 文件夹，用于保存上传的图片，image 字段存储图片保存的路径
+    # settings.MEDIA_ROOT(media) 目录下生成 type 文件夹，用于保存上传的图片，image 存储 media 目录下图片保存的路径
     image = models.ImageField(upload_to='type', verbose_name='商品类型图片')
 
     class Meta:
@@ -113,3 +113,6 @@ class IndexPromotionBanner(models.Model):
         db_table = 'df_index_promotion'
         verbose_name = "主页促销活动"
         verbose_name_plural = verbose_name
+
+    def __str__(self):
+        return self.name

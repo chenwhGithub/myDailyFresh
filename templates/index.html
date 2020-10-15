@@ -39,8 +39,9 @@
 			<ul class="points"></ul>
 		</div>
 		<div class="adv fl">
-			<a href="#"><img src="{% static 'images/adv01.jpg' %}"></a>
-			<a href="#"><img src="{% static 'images/adv02.jpg' %}"></a>
+			{% for banner in promotion_banners %}
+				<a href="#"><img src="{{ banner.image.url }}"></a>
+			{% endfor %}
 		</div>
 	</div>
 

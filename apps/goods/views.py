@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.views.generic import View
-from .models import GoodsType, IndexGoodsBanner
+from .models import GoodsType, IndexGoodsBanner, IndexPromotionBanner
 
 # Create your views here.
 class IndexView(View):
@@ -8,8 +8,10 @@ class IndexView(View):
         ''' 点击首页按钮，跳转到 index.html 页面 '''
         types = GoodsType.objects.all() # 获取商品种类信息
         goods_banners = IndexGoodsBanner.objects.all().order_by('index') # 获取首页轮播信息
+        promotion_banners = IndexPromotionBanner.objects.all().order_by('index') # 获取首页促销活动信息
         context = {
             'types': types,
             'goods_banners': goods_banners,
+            'promotion_banners': promotion_banners,
         }
         return render(request, 'index.html', context)
