@@ -40,6 +40,9 @@ class GoodsSKU(models.Model):
         verbose_name = '商品'
         verbose_name_plural = verbose_name
 
+    def __str__(self):
+        return self.name
+
 
 class Goods(models.Model):
     '''商品SPU模型类'''
@@ -50,6 +53,9 @@ class Goods(models.Model):
         db_table = 'df_goods'
         verbose_name = '商品SPU'
         verbose_name_plural = verbose_name
+
+    def __str__(self):
+        return self.name
 
 
 class GoodsImage(models.Model):
@@ -73,6 +79,9 @@ class IndexGoodsBanner(models.Model):
         db_table = 'df_index_banner'
         verbose_name = '首页轮播商品'
         verbose_name_plural = verbose_name
+
+    def __str__(self):
+        return self.sku.name
 
 
 class IndexTypeGoodsBanner(models.Model):

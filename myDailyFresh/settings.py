@@ -159,3 +159,7 @@ CACHES = {
 # 配合上面 CACHES 设置，将 session 存储在 redis 缓存中，默认在数据表 django_session
 SESSION_ENGINE = "django.contrib.sessions.backends.cache"
 SESSION_CACHE_ALIAS = "default"
+
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
