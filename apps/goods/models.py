@@ -41,7 +41,7 @@ class GoodsSKU(models.Model):
         verbose_name_plural = verbose_name
 
     def __str__(self):
-        return self.name
+        return self.type.name + ' ' + self.name
 
 
 class Goods(models.Model):
@@ -100,6 +100,9 @@ class IndexTypeGoodsBanner(models.Model):
         db_table = 'df_index_type_goods'
         verbose_name = "主页分类展示商品"
         verbose_name_plural = verbose_name
+
+    def __str__(self):
+        return self.type.name + ' ' + self.sku.name
 
 
 class IndexPromotionBanner(models.Model):
