@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.views.generic import View
-from .models import GoodsType, IndexGoodsBanner, IndexPromotionBanner, IndexTypeGoodsBanner
+from .models import GoodsType, GoodsSKU, IndexGoodsBanner, IndexPromotionBanner, IndexTypeGoodsBanner
 
 # Create your views here.
 class IndexView(View):
@@ -24,3 +24,15 @@ class IndexView(View):
             'promotion_banners': promotion_banners,
         }
         return render(request, 'index.html', context)
+
+
+class DetailView(View):
+    '''点击商品图片，跳转到 detal.html 详情页面'''
+    def get(self, request, goods_id):
+        types = GoodsType.objects.all()
+        sku = GoodsSKU.objects.get(id=goods_id)
+        context = {
+            'types': types,
+            'sku': sku,
+        }
+        return render(request, 'detail.html', context)
