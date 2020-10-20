@@ -1,30 +1,22 @@
 from django.shortcuts import render
 from django.views.generic import View
+from django.core.cache import cache
 from django_redis import get_redis_connection
+from utils.utils import get_index_data
+from celery_tasks.tasks import generate_static_index_html
 from .models import GoodsType, GoodsSKU, IndexGoodsBanner, IndexPromotionBanner, IndexTypeGoodsBanner
 
 # Create your views here.
 class IndexView(View):
     def get(self, request):
         ''' 点击首页按钮，跳转到 index.html 页面 '''
-        types = GoodsType.objects.all() # 获取商品种类信息
-        for goodstype in types: # 获取分类商品展示信息
-            # 获取该类型下面的商品的标题信息并排序
-            title_banner = IndexTypeGoodsBanner.objects.filter(type=goodstype, display_type=0).order_by('index')
-            # 获取该类型下面的商品的图片信息并排序
-            image_banner = IndexTypeGoodsBanner.objects.filter(type=goodstype, display_type=1).order_by('index')
-            # 动态给 type 增加属性，分别保存首页分类商品的文字信息和图片信息
-            goodstype.title_banner = title_banner
-            goodstype.image_banner = image_banner
+        context = cache.get('index_data') # 从 cache 获取数据
+        if not context:
+            context = get_index_data()
+            generate_static_index_html.delay(context) # 调用 celery 重新生成静态首页文件
+            cache.set('index_data', context, 3600) # 单位秒
 
-        goods_banners = IndexGoodsBanner.objects.all().order_by('index') # 获取首页轮播信息
-        promotion_banners = IndexPromotionBanner.objects.all().order_by('index') # 获取首页促销活动信息
-        context = {
-            'types': types,
-            'goods_banners': goods_banners,
-            'promotion_banners': promotion_banners,
-        }
-        return render(request, 'index.html', context)
+        return render(request, 'index.html')
 
 
 class DetailView(View):

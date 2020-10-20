@@ -1,6 +1,7 @@
 from celery import Celery
 from django.conf import  settings
 from django.core.mail import send_mail
+from django.template import loader
 
 import os
 import django
@@ -20,3 +21,12 @@ def send_register_active_email(to_email, uname, token):
     receiver = [to_email]
     html_message = '<h1>%s, 欢迎您成为天天生鲜注册会员</h1>请点击下面链接激活您的账户<br/><br>　<a href="http://127.0.0.1:8000/user/active/%s">http://127.0.0.1:8000/user/active/%s</a>'%(uname, token, token)
     send_mail(subject, message=message, from_email=sender, recipient_list=receiver, html_message=html_message)
+
+@app.task()
+def generate_static_index_html(context):
+    template = loader.get_template('index_template.html')
+    static_index = template.render(context)
+
+    save_path = os.path.join(settings.BASE_DIR, 'templates/index.html')
+    with open(save_path, 'w') as fptr:
+        fptr.write(static_index)
