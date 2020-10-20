@@ -16,7 +16,7 @@
 				<span></span>
 				<ul class="subnav">
 					{% for type in types %}
-						<li><a href="#" class="{{ type.logo }}">{{ type.name }}</a></li>
+						<li><a href="{% url 'goods:list' type.id 1 %}?sort=default" class="{{ type.logo }}">{{ type.name }}</a></li>
 					{% endfor %}
 				</ul>
 			</div>
@@ -33,7 +33,7 @@
 	<div class="breadcrumb">
 		<a href="#">全部分类</a>
 		<span>></span>
-		<a href="#">{{ sku.type.name }}</a>
+		<a href="{% url 'goods:list' sku.type.id 1 %}?sort=default">{{ sku.type.name }}</a>
 		<span>></span>
 		<a href="#">商品详情</a>
 	</div>

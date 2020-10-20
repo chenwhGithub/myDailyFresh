@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.views.generic import View
 from django_redis import get_redis_connection
+from django.core.paginator import Paginator
 from .models import GoodsType, GoodsSKU, IndexGoodsBanner, IndexPromotionBanner, IndexTypeGoodsBanner
 
 # Create your views here.
@@ -46,3 +47,47 @@ class DetailView(View):
             'sku': sku,
         }
         return render(request, 'detail.html', context)
+
+
+# /list/type_id/page_num?sort='default'
+class ListView(View):
+    ''' 商品列表页 '''
+    def get(self, request, type_id, page_num):
+        sort_dic = {
+            'price': 'price',
+            'hot': '-sales', # - 表示降序排列
+            'default': '-id',
+        }
+        types = GoodsType.objects.all()
+        type_cur = GoodsType.objects.get(id=type_id)
+        sort = request.GET.get('sort')
+        if sort not in sort_dic.keys():
+            sort = 'default'
+        sku_list = GoodsSKU.objects.filter(type=type_cur).order_by(sort_dic[sort])
+
+        paginator = Paginator(sku_list, 2) # 每页显示两条记录
+        total_page = paginator.num_pages # 总的页数
+        page_num = int(page_num)
+        if page_num > total_page:
+            page_num = 1
+        skus_page = paginator.page(page_num) # 当前页的 page 对象
+
+        # 获取显示的页码范围，这里设置只显示三个页码
+        page_list = []
+        if total_page <= 3: # 若总页数小于3，则将页码全部显示
+            page_list = range(1, total_page+1)
+        elif page_num == 1: # 若当前页码为第一页，则显示页码 1,2,3
+            page_list = range(1, 4)
+        elif page_num == total_page: # 若当前页码为最后一页，则显示最后三个页码
+            page_list = range(total_page-2, total_page+1)
+        else: # 其他情况则显示前一页，当前页，后一页页码
+            page_list = range(page_num-1, page_num+2)
+
+        context = {
+            'types': types,
+            'type': type_cur,
+            'skus_page': skus_page,
+            'page_list': page_list,
+            'sort': sort,
+        }
+        return render(request, 'list.html', context)
