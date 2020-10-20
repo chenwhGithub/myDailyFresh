@@ -126,8 +126,8 @@ class InfoView(LoginRequiredMixin, View):
         except Address.DoesNotExist:
             addr_default = None
 
-        con = get_redis_connection("default")
-        history_key = "history_%d"% user.id
+        con = get_redis_connection('default')
+        history_key = 'history_%d'% user.id
         sku_ids = con.lrange(history_key, 0, 4) # 获取最近的5个浏览商品信息
         goods_history = []
         for sku_id in sku_ids:
@@ -135,9 +135,9 @@ class InfoView(LoginRequiredMixin, View):
             goods_history.append(goods)
 
         context = {
-            "page": "user",
-            "addr_default": addr_default,
-            "goods_history": goods_history,
+            'page': 'info',
+            'addr_default': addr_default,
+            'goods_history': goods_history,
         }
         return render(request, 'user_center_info.html', context)
 

@@ -36,7 +36,7 @@ class DetailView(View):
         user = request.user
         if user.is_authenticated:
             conn = get_redis_connection('default')
-            history_key = "history_%d"% user.id
+            history_key = 'history_%d'% user.id
             conn.lrem(history_key, 0, goods_id) # 先列表中删除该id，防止最近浏览记录中存在两个相同的商品
             conn.lpush(history_key, goods_id) # 插入最新浏览的商品id
             conn.ltrim(history_key, 0, 4) # 移除老的浏览的商品id，用于用户中心显示最近浏览信息
