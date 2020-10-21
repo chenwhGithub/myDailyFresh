@@ -8,6 +8,16 @@
 	<script type="text/javascript" src="{% static 'js/slide.js' %}"></script>
 {% endblock topfiles %}
 
+{% block search_bar %}
+	<div class="search_bar clearfix">
+		<a href="{% url 'goods:index' %}" class="logo fl"><img src="{% static 'images/logo.png' %}"></a>
+		<div class="search_con fr">
+			<input type="text" class="input_text fl" name="" placeholder="搜索商品">
+			<input type="button" class="input_btn fr" name="" value="搜索">
+		</div>
+	</div>
+{% endblock search_bar %}
+
 {% block body %}
 	<h3 class="common_title">确认收货地址</h3>
 	<div class="common_list_con clearfix">

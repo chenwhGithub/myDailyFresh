@@ -75,8 +75,6 @@ class ListView(View):
         types = GoodsType.objects.all()
         type_cur = GoodsType.objects.get(id=type_id)
         sort = request.GET.get('sort')
-        if sort not in sort_dic.keys():
-            sort = 'default'
         sku_list = GoodsSKU.objects.filter(type=type_cur).order_by(sort_dic[sort])
 
         paginator = Paginator(sku_list, 2) # 每页显示两条记录
@@ -97,11 +95,19 @@ class ListView(View):
         else: # 其他情况则显示前一页，当前页，后一页页码
             page_list = range(page_num-1, page_num+2)
 
+        user = request.user
+        cart_count = 0
+        if user.is_authenticated:
+            conn = get_redis_connection('default')
+            cart_key = "cart_%d"%user.id
+            cart_count = conn.hlen(cart_key)
+
         context = {
             'types': types,
             'type': type_cur,
             'skus_page': skus_page,
             'page_list': page_list,
             'sort': sort,
+            'cart_count': cart_count,
         }
         return render(request, 'list.html', context)
