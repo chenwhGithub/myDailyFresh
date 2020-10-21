@@ -163,6 +163,10 @@
                     if (is_checked) { // 删除的商品没有被选中，则不影响商品总数量和总价格
                         update_page_info()
                     }
+
+                    // 我的购物车图标数字-1
+                    old_count = $('#show_count').text()
+                    $('#show_count').html(parseInt(old_count) - 1)
                 } else {
                     alert(data.errmsg)
                 }

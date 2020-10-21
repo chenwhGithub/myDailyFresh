@@ -20,10 +20,19 @@ class IndexView(View):
 
         goods_banners = IndexGoodsBanner.objects.all().order_by('index') # 获取首页轮播信息
         promotion_banners = IndexPromotionBanner.objects.all().order_by('index') # 获取首页促销活动信息
+
+        user = request.user
+        cart_count = 0
+        if user.is_authenticated:
+            conn = get_redis_connection('default')
+            cart_key = 'cart_%d'%user.id
+            cart_count = conn.hlen(cart_key)
+
         context = {
             'types': types,
             'goods_banners': goods_banners,
             'promotion_banners': promotion_banners,
+            'cart_count': cart_count,
         }
         return render(request, 'index.html', context)
 
@@ -35,6 +44,7 @@ class DetailView(View):
         sku = GoodsSKU.objects.get(id=goods_id)
 
         user = request.user
+        cart_count = 0
         if user.is_authenticated:
             conn = get_redis_connection('default')
             history_key = 'history_%d'% user.id
@@ -42,9 +52,13 @@ class DetailView(View):
             conn.lpush(history_key, goods_id) # 插入最新浏览的商品id
             conn.ltrim(history_key, 0, 4) # 移除老的浏览的商品id，用于用户中心显示最近浏览信息
 
+            cart_key = 'cart_%d'%user.id
+            cart_count = conn.hlen(cart_key)
+
         context = {
             'types': types,
             'sku': sku,
+            'cart_count': cart_count,
         }
         return render(request, 'detail.html', context)
 
