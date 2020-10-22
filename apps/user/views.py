@@ -7,9 +7,11 @@ from django.core.mail import send_mail
 from django.urls import reverse
 from django.http import HttpResponse
 from django.contrib.auth import authenticate, login, logout
+from django.core.paginator import Paginator
 from django_redis import get_redis_connection
 from .models import User, Address
 from goods.models import GoodsSKU
+from order.models import OrderInfo, OrderGoods
 from utils.mixin import LoginRequiredMixin
 from celery_tasks.tasks import send_register_active_email
 
@@ -143,9 +145,44 @@ class InfoView(LoginRequiredMixin, View):
 
 
 class OrderView(LoginRequiredMixin, View):
-    def get(self, request):
+    def get(self, request, page_num):
         ''' 点击用户中心-全部订单按钮，跳转到 user_center_order.html 页面 '''
-        return render(request, 'user_center_order.html', {'page':'order'})
+        user = request.user
+        orders = OrderInfo.objects.filter(user=user, is_deleted=0).order_by('-create_time')
+        # 遍历订单头
+        for order in orders:
+            order_skus = OrderGoods.objects.filter(order=order)
+            order.order_skus = order_skus
+            order.status_name = OrderInfo.ORDER_STATUS_DIC[order.order_status]
+            order.pay_method_name = OrderInfo.PAY_METHOD_DIC[order.order_status]
+            for order_sku in order_skus:
+                amount = order_sku.count * order_sku.price
+                order_sku.amount = amount
+
+        paginator = Paginator(orders, 1)
+        total_page = paginator.num_pages
+        page_num = int(page_num)
+        if page_num > total_page:
+            page_num = 1
+        order_page = paginator.page(page_num)
+
+        # 获取显示的页码范围，这里设置只显示三个页码
+        page_list = []
+        if total_page <= 3: # 若总页数小于3，则将页码全部显示
+            page_list = range(1, total_page+1)
+        elif page_num == 1: # 若当前页码为第一页，则显示页码 1,2,3
+            page_list = range(1, 4)
+        elif page_num == total_page: # 若当前页码为最后一页，则显示最后三个页码
+            page_list = range(total_page-2, total_page+1)
+        else: # 其他情况则显示前一页，当前页，后一页页码
+            page_list = range(page_num-1, page_num+2)
+
+        context = {
+            'order_page': order_page,
+            'page_list': page_list,
+            'page': 'order',
+        }
+        return render(request, 'user_center_order.html', context)
 
 
 class AddressView(LoginRequiredMixin, View):

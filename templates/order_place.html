@@ -104,20 +104,20 @@
 			'sku_ids': sku_ids,
         	'csrfmiddlewaretoken':csrf,
         }
-        $.post('/order/commit', params, function (data) {
-            if (data.res == 5) {
+        $.post('/order/create/', params, function (data) {
+            if (data.status == 0) {
             	localStorage.setItem('order_finish', 2)
 				$('.popup_con').fadeIn('fast', function() {
 					setTimeout(function() {
 						$('.popup_con').fadeOut('fast', function() {
-							window.location.href = "{% url 'user:info' %}"
+							window.location.href = "{% url 'user:order' 1 %}"
 						})
 					}, 3000)
 				})
-            } else {
-                alert(data.errmsg)
-            }
-        })
-    })
+			} else {
+				alert(data.errmsg)
+			}
+		})
+	})
 	</script>
 {% endblock bottomfiles %}

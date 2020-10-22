@@ -10,6 +10,6 @@ urlpatterns = [
     path('login', LoginView.as_view(), name='login'),
     path('logout', LogoutView.as_view(), name='logout'),
     path('info', InfoView.as_view(), name='info'),
-    path('order', OrderView.as_view(), name='order'),
+    url(r'^order/(?P<page_num>\d+)/$', OrderView.as_view(), name='order'),
     path('address', AddressView.as_view(), name='address'),
 ]
