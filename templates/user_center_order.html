@@ -48,3 +48,59 @@
 		</div>
 	</div>
 {% endblock right_content %}
+
+{% block bottomfiles %}
+	<script src="{% static 'js/jquery-1.12.4.min.js' %}"></script>
+	<script>
+
+	$(".oper_btn").each(function () {
+		status = $(this).attr("order_status")
+		if(status == 1){
+			$(this).text("去支付")
+		}
+		else if (status==4){
+			$(this).text("去评价")
+		}
+		else if(status==5){
+			$(this).text('已完成')
+		}
+		else {
+			$(this).text($(this).attr("status_name"))
+		}
+	})
+
+	$(".oper_btn").click(function () {
+		status = $(this).attr("order_status")
+		order_id = $(this).attr("order_id")
+		pay_method = $(this).attr('pay_method')
+		if (status == 1) { // 待支付状态，发送 ajax 请求支付
+			if (pay_method == '3') { // 支付宝支付
+				csrf = $('input[name="csrfmiddlewaretoken"]').val()
+				params = {
+					'order_id': order_id,
+					'csrfmiddlewaretoken': csrf
+				}
+				$.post('/order/pay/', params, function (data) {
+					if (data.status == 0) {
+						window.open(data.pay_url) // 引导用户到支付页面
+						$.post('/order/query/', params, function () { // 发送 ajax 请求查询订单支付情况
+							if (data.status == 0) {
+								alert('支付成功')
+								location.reload()
+							} else {
+								alert(data.errmsg)
+							}
+						})
+					} else {
+						alert(data.errmsg)
+					}
+				})
+			} else {
+				alert('其他支付方式暂不支持')
+			}
+		} else if (status == 4) { // 若订单状态为待评价，则跳转到评价界面
+			location.href = "#"
+		}
+	})
+	</script>
+{% endblock bottomfiles %}

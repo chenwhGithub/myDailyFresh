@@ -1,10 +1,18 @@
 import random
+import time
 from datetime import datetime
 from django.shortcuts import render
 from django.views import View
 from django.db import transaction
 from django.http import JsonResponse
+from django.conf import settings
 from django_redis import get_redis_connection
+from alipay.aop.api.AlipayClientConfig import AlipayClientConfig
+from alipay.aop.api.DefaultAlipayClient import DefaultAlipayClient
+from alipay.aop.api.domain.AlipayTradePagePayModel import AlipayTradePagePayModel
+from alipay.aop.api.request.AlipayTradePagePayRequest import AlipayTradePagePayRequest
+from alipay.aop.api.domain.AlipayTradeQueryModel import AlipayTradeQueryModel
+from alipay.aop.api.request.AlipayTradeQueryRequest import AlipayTradeQueryRequest
 from utils.mixin import LoginRequiredMixin
 from goods.models import GoodsSKU
 from user.models import Address
@@ -126,3 +134,95 @@ class CreateView(View):
         transaction.savepoint_commit(save_id)
         conn.hdel(cart_key, *sku_ids) # 清除用户购物车中商品的记录
         return JsonResponse({'status':0})
+
+
+def alipay_init():
+    ''' 初始化支付宝客户端 '''
+    alipay_client_config = AlipayClientConfig(sandbox_debug=True) # 沙盒测试环境
+    alipay_client_config.app_id = settings.ALIPAY_APP_ID
+    alipay_client_config.app_private_key = settings.APP_PRIVATE_KEY
+    alipay_client_config.alipay_public_key = settings.ALIPAY_PUBLIC_KEY
+    client = DefaultAlipayClient(alipay_client_config)
+    return client
+
+
+def alipay_pay(order):
+    ''' 发送支付宝支付请求 '''
+    client = alipay_init()
+    model = AlipayTradePagePayModel()
+    model.out_trade_no = order.order_id # 商户系统的订单编号，需保证在商户系统不重复
+    model.total_amount = str(order.total_price + order.transit_price)
+    model.subject = '天天生鲜订单支付'
+    model.product_code = 'FAST_INSTANT_TRADE_PAY'
+    model.timeout_express = settings.ALIPAY_EXPRESS # 订单过期关闭时长
+    # 创建请求对象
+    request = AlipayTradePagePayRequest(biz_model=model)
+    # 设置回调通知地址（GET）
+    request.return_url = None
+    # 设置回调通知地址（POST）
+    request.notify_url = None
+    # 执行API调用,获取支付链接
+    pay_url = client.page_execute(request, http_method='GET')
+    return pay_url
+
+
+def alipay_query(order):
+    ''' 查询支付宝支付结果 '''
+    client = alipay_init()
+    model = AlipayTradeQueryModel()
+    model.out_trade_no = order.order_id
+    request = AlipayTradeQueryRequest(biz_model=model)
+
+    context = {}
+    while True:
+        response = client.execute(request)
+        response = eval(response) # str转换为字典
+        code = response.get('code')
+        sub_code = response.get('sub_code')
+        sub_msg = response.get('sub_msg')
+        trade_status = response.get('trade_status')
+        if sub_code == 'ACQ.TRADE_NOT_EXIST' or (code == '10000' and trade_status == 'WAIT_BUYER_PAY'):
+            # 交易不存在，或状态为等待买家付款则继续等待用户付款
+            time.sleep(5)
+        elif code == '10000' and trade_status == 'TRADE_SUCCESS': # 支付成功
+            context['status'] = 0
+            context['trade_no'] = response.get('trade_no') # 支付宝交易号
+            break
+        else:
+            context['errmsg'] = '支付失败:%s-%s'%(sub_code, sub_msg)
+            break
+    return context
+
+
+class PayView(View):
+    ''' 支付宝订单支付 '''
+    def post(self, request):
+        user = request.user
+        if not user.is_authenticated:
+            return JsonResponse({'status':1, 'errmsg': '用户未登录'})
+
+        order_id = int(request.POST.get('order_id'))
+        order = OrderInfo.objects.get(order_id=order_id,
+                                      user=user,
+                                      pay_method=3,
+                                      order_status=1)
+        pay_url = alipay_pay(order)
+        return JsonResponse({'status':0, 'pay_url':pay_url})
+
+
+class QueryView(View):
+    ''' 支付宝支付结果查询 '''
+    def post(self, request):
+        user = request.user
+        if not user.is_authenticated:
+            return JsonResponse({'status':1, 'errmsg': '用户未登录'})
+
+        order_id = int(request.POST.get('order_id'))
+        order = OrderInfo.objects.get(order_id=order_id)
+        context = alipay_query(order)
+        if context['status'] == 0:
+            order.trade_no = context['trade_no']
+            order.order_status = 4 # 待评价
+            order.save()
+        print('context: %s'%(str(context)))
+        return JsonResponse(context)

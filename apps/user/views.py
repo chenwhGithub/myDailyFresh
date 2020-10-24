@@ -154,12 +154,12 @@ class OrderView(LoginRequiredMixin, View):
             order_skus = OrderGoods.objects.filter(order=order)
             order.order_skus = order_skus
             order.status_name = OrderInfo.ORDER_STATUS_DIC[order.order_status]
-            order.pay_method_name = OrderInfo.PAY_METHOD_DIC[order.order_status]
+            order.pay_method_name = OrderInfo.PAY_METHOD_DIC[order.pay_method]
             for order_sku in order_skus:
                 amount = order_sku.count * order_sku.price
                 order_sku.amount = amount
 
-        paginator = Paginator(orders, 1)
+        paginator = Paginator(orders, 2)
         total_page = paginator.num_pages
         page_num = int(page_num)
         if page_num > total_page:

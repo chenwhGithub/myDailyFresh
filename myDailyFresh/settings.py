@@ -138,7 +138,7 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.qq.com'
 EMAIL_PORT = 25
 EMAIL_HOST_USER = '229306062@qq.com'
-EMAIL_HOST_PASSWORD = 'xdlqyeeoevjvbhah'
+EMAIL_HOST_PASSWORD = 'xxx'
 EMAIL_FROM = 'myDailyFresh<229306062@qq.com>'
 
 
@@ -163,3 +163,11 @@ SESSION_CACHE_ALIAS = "default"
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+
+# 支付宝支付 app_id
+ALIPAY_APP_ID = '2016102700767807'
+# 订单超时时间：如果买家超过这个时间不付款会关闭交易(最小1分钟)
+ALIPAY_EXPRESS = '10m'
+APP_PRIVATE_KEY = 'xxx'
+ALIPAY_PUBLIC_KEY = 'xxx'
