@@ -160,15 +160,15 @@
 			update_goods_amount()
 		})
 
-		var $add_x = $('#add_cart').offset().top;
-		var $add_y = $('#add_cart').offset().left;
-		var $to_x = $('#show_count').offset().top;
-		var $to_y = $('#show_count').offset().left;
+		var $add_x = $('#add_cart').offset().top
+		var $add_y = $('#add_cart').offset().left
+		var $to_x = $('#show_count').offset().top
+		var $to_y = $('#show_count').offset().left
 
 		// 点击加入购物车
 		$('#add_cart').click(function() {
-			count = $(".num_show").val();
-			sku_id = $(this).attr('sku_id');
+			count = $(".num_show").val()
+			sku_id = $(this).attr('sku_id')
 			csrf = $('input[name="csrfmiddlewaretoken"]').val()
 			parameters = {
 				"sku_id": sku_id,
