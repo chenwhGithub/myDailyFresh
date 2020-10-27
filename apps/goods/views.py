@@ -2,26 +2,41 @@ from django.shortcuts import render
 from django.views.generic import View
 from django_redis import get_redis_connection
 from django.core.paginator import Paginator
+from django.core.cache import cache
 from haystack.views import SearchView
 from .models import GoodsType, GoodsSKU, IndexGoodsBanner, IndexPromotionBanner, IndexTypeGoodsBanner
 from order.models import OrderGoods
+
+
+def get_index_data():
+    types = GoodsType.objects.all() # 获取商品种类信息
+    for goodstype in types: # 获取分类商品展示信息
+        # 获取该类型下面的商品的标题信息并排序
+        title_banner = IndexTypeGoodsBanner.objects.filter(type=goodstype, display_type=0).order_by('index')
+        # 获取该类型下面的商品的图片信息并排序
+        image_banner = IndexTypeGoodsBanner.objects.filter(type=goodstype, display_type=1).order_by('index')
+        # 动态给 type 增加属性，分别保存首页分类商品的文字信息和图片信息
+        goodstype.title_banner = title_banner
+        goodstype.image_banner = image_banner
+
+    goods_banners = IndexGoodsBanner.objects.all().order_by('index') # 获取首页轮播信息
+    promotion_banners = IndexPromotionBanner.objects.all().order_by('index') # 获取首页促销活动信息
+
+    context = {
+        'types': types,
+        'goods_banners': goods_banners,
+        'promotion_banners': promotion_banners,
+    }
+    return context
 
 # Create your views here.
 class IndexView(View):
     def get(self, request):
         ''' 点击首页按钮，跳转到 index.html 页面 '''
-        types = GoodsType.objects.all() # 获取商品种类信息
-        for goodstype in types: # 获取分类商品展示信息
-            # 获取该类型下面的商品的标题信息并排序
-            title_banner = IndexTypeGoodsBanner.objects.filter(type=goodstype, display_type=0).order_by('index')
-            # 获取该类型下面的商品的图片信息并排序
-            image_banner = IndexTypeGoodsBanner.objects.filter(type=goodstype, display_type=1).order_by('index')
-            # 动态给 type 增加属性，分别保存首页分类商品的文字信息和图片信息
-            goodstype.title_banner = title_banner
-            goodstype.image_banner = image_banner
-
-        goods_banners = IndexGoodsBanner.objects.all().order_by('index') # 获取首页轮播信息
-        promotion_banners = IndexPromotionBanner.objects.all().order_by('index') # 获取首页促销活动信息
+        context = cache.get('index_data')
+        if not context:
+            context = get_index_data()
+            cache.set('index_data', context, 2*3600) # 设置缓冲生存周期单位秒
 
         user = request.user
         cart_count = 0
@@ -29,13 +44,8 @@ class IndexView(View):
             conn = get_redis_connection('default')
             cart_key = 'cart_%d'%user.id
             cart_count = conn.hlen(cart_key)
+        context['cart_count'] = cart_count
 
-        context = {
-            'types': types,
-            'goods_banners': goods_banners,
-            'promotion_banners': promotion_banners,
-            'cart_count': cart_count,
-        }
         return render(request, 'index.html', context)
 
 
