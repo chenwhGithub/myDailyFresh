@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.views.generic import View
 from django_redis import get_redis_connection
 from django.core.paginator import Paginator
+from haystack.views import SearchView
 from .models import GoodsType, GoodsSKU, IndexGoodsBanner, IndexPromotionBanner, IndexTypeGoodsBanner
 from order.models import OrderGoods
 
@@ -114,3 +115,32 @@ class ListView(View):
             'cart_count': cart_count,
         }
         return render(request, 'list.html', context)
+
+
+class GoodsSeachView(SearchView):
+    ''' 商品搜索视图 '''
+    def extra_context(self):
+        ''' 重载 extra_context 来添加额外的 context 字段 '''
+        """ 默认的 context 字段
+        context = {
+            'query': self.query, # 搜索关键字
+            'form': self.form,
+            'page': page, # 当前页的page对象，遍历page对象，获取到的是SearchResult类的实例对象，对象的属性object才是模型类的对象
+            'paginator': paginator, # 分页paginator对象
+            'suggestion': None,
+        }
+        """
+        context = super(GoodsSeachView, self).extra_context()
+
+        user = self.request.user
+        types = GoodsType.objects.all()
+        cart_count = 0
+        if user.is_authenticated:
+            conn = get_redis_connection('default')
+            cart_key = "cart_%d"%user.id
+            cart_count = conn.hlen(cart_key)
+
+        # 添加上下文字段
+        context['types'] = types
+        context['cart_count'] = cart_count
+        return context

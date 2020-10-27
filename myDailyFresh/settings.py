@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'order',
     'user',
     'ckeditor', # pip install django-ckeditor 富文本类型支持
+    'haystack', # pip install django-haystack 搜索框架
 ]
 
 MIDDLEWARE = [
@@ -171,3 +172,15 @@ ALIPAY_APP_ID = '2016102700767807'
 ALIPAY_EXPRESS = '10m'
 APP_PRIVATE_KEY = 'xxx'
 ALIPAY_PUBLIC_KEY = 'xxx'
+
+# haystack 搜索设置
+HAYSTACK_CONNECTIONS = {
+    'default': {
+        'ENGINE': 'goods.whoosh_cn_backend.WhooshEngine', # 搜索引擎
+        'PATH': os.path.join(BASE_DIR, 'whoosh_index'), # 索引文件目录
+    },
+}
+# 当添加、修改、删除数据时，自动重新生成索引
+HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'
+# 设置每页显示的数目，默认为20
+HAYSTACK_SEARCH_RESULTS_PER_PAGE = 5
