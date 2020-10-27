@@ -61,6 +61,7 @@ class OrderGoods(models.Model):
     count = models.IntegerField(default=1, verbose_name='商品数目')
     price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='商品价格')
     comment = models.CharField(max_length=256, default="", verbose_name='评论')
+    comment_time = models.DateTimeField(auto_now=True, verbose_name='评论时间')
 
     def __str__(self):
         return str(self.order) + ' ' + self.sku.name

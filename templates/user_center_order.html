@@ -6,7 +6,7 @@
 		<h3 class="common_title2">全部订单</h3>
 		{% for order in order_page %}
 			<ul class="order_list_th w978 clearfix">
-				<li class="col01">{{ order.create_time }}</li>
+				<li class="col01">{{ order.create_time|date:"Y-m-d H:i:s" }}</li>
 				<li class="col02">{{ order.order_id }}</li>
 				<li class="col02 stress">{{ order.status_name }}</li>
 			</ul>

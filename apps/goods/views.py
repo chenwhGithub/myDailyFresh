@@ -3,6 +3,7 @@ from django.views.generic import View
 from django_redis import get_redis_connection
 from django.core.paginator import Paginator
 from .models import GoodsType, GoodsSKU, IndexGoodsBanner, IndexPromotionBanner, IndexTypeGoodsBanner
+from order.models import OrderGoods
 
 # Create your views here.
 class IndexView(View):
@@ -42,6 +43,7 @@ class DetailView(View):
     def get(self, request, goods_id):
         types = GoodsType.objects.all()
         sku = GoodsSKU.objects.get(id=goods_id)
+        order_goods_list = OrderGoods.objects.filter(sku=sku).exclude(comment="")
 
         user = request.user
         cart_count = 0
@@ -59,6 +61,7 @@ class DetailView(View):
             'types': types,
             'sku': sku,
             'cart_count': cart_count,
+            'order_goods_list': order_goods_list,
         }
         return render(request, 'detail.html', context)
 
