@@ -1,7 +1,7 @@
 import random
 import time
 from datetime import datetime
-from django.shortcuts import render
+from django.shortcuts import render, redirect, reverse
 from django.views import View
 from django.db import transaction
 from django.http import JsonResponse
@@ -226,3 +226,33 @@ class QueryView(View):
             order.save()
         print('context: %s'%(str(context)))
         return JsonResponse(context)
+
+
+class CommentView(LoginRequiredMixin, View):
+    ''' 订单评价视图 '''
+    def get(self, request, order_id):
+        user = request.user
+        order = OrderInfo.objects.get(order_id=order_id, user=user)
+        order_goods_list = OrderGoods.objects.filter(order=order)
+        for order_goods in order_goods_list:
+            order_goods.amount = order_goods.count * order_goods.price
+        order.order_goods_list = order_goods_list
+        order.status_name = OrderInfo.ORDER_STATUS_DIC[order.order_status]
+        return render(request, 'order_comment.html', {'order': order})
+
+    def post(self, request, order_id):
+        ''' 提交评价 '''
+        user = request.user
+        total_count = int(request.POST.get('total_count'))
+        order = OrderInfo.objects.get(order_id=order_id, user=user)
+
+        for i in range(1, total_count+1):
+            comment = request.POST.get('content_%d' % i, '')
+            sku_id = int(request.POST.get('sku_%d' % i))
+            order_goods = OrderGoods.objects.get(order=order, sku=sku_id)
+            order_goods.comment = comment
+            order_goods.save()
+
+        order.order_status = 5
+        order.save()
+        return redirect(reverse('user:order', kwargs={'page_num': 1}))

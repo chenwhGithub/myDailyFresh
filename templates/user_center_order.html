@@ -99,7 +99,7 @@
 				alert('其他支付方式暂不支持')
 			}
 		} else if (status == 4) { // 若订单状态为待评价，则跳转到评价界面
-			location.href = "#"
+			location.href = '/order/comment/' + order_id
 		}
 	})
 	</script>
