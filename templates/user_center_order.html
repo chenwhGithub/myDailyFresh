@@ -24,7 +24,7 @@
 								</ul>
 							{% endfor %}
 						</td>
-						<td width="15%">{{ order.total_price|add:order.transit_price }}元(含运费)</td>
+						<td width="15%">{{ order.total_pay }}元(含运费)</td>
 						<td width="15%" class="status">{{ order.status_name }}</br>支付方式：{{ order.pay_method_name }}</td>
 						{% csrf_token %}
 						<td width="15%"><a href="#" order_id='{{ order.order_id }}' order_status='{{ order.status }}' status_name='{{ order.status_name }}' pay_method='{{ order.pay_method }}' class="oper_btn">去付款</a></td>

@@ -157,6 +157,7 @@ class OrderView(LoginRequiredMixin, View):
             order.goods_list = goods_list
             order.status_name = OrderInfo.ORDER_STATUS_DIC[order.status]
             order.pay_method_name = OrderInfo.PAY_METHOD_DIC[order.pay_method]
+            order.total_pay = order.total_price + order.transit_price
             for goods in goods_list:
                 amount = goods.count * goods.price
                 goods.amount = amount
