@@ -4,7 +4,7 @@ from django.shortcuts import render, redirect
 from django.views.generic import View
 from django.conf import settings
 from django.urls import reverse
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.contrib.auth import authenticate, login, logout
 from django.core.paginator import Paginator
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -197,10 +197,12 @@ class AddressView(LoginRequiredMixin, View):
             addr_default = Address.objects.get(user=user, is_default=True)
         except Address.DoesNotExist:
             addr_default = None
+        addrs_nondefault = Address.objects.filter(user=user, is_default=False)
 
         context = {
             'page_type': 'address',
             'addr_default': addr_default,
+            'addrs_nondefault': addrs_nondefault,
         }
 
         return render(request, 'user_center_address.html', context)
@@ -231,7 +233,35 @@ class AddressView(LoginRequiredMixin, View):
                                addr=addr,
                                zip_code=zip_code,
                                phone=phone,
-                               is_default = is_default
-                               )
+                               is_default = is_default)
 
         return redirect(reverse('user:address'))
+
+
+class AddressChangeView(LoginRequiredMixin, View):
+    def post(self, request):
+        user = request.user
+        addr_id = request.POST.get('addr_id')
+        change_type = request.POST.get('change_type')
+        print(addr_id)
+        print(change_type)
+
+        addr_default = None
+        try:
+            addr_default = Address.objects.get(user=user, is_default=True)
+        except Address.DoesNotExist:
+            addr_default = None
+
+        if change_type == '1': # 删除地址
+            addr = Address.objects.get(id=addr_id)
+            addr.delete()
+        else: # 设为默认地址
+            if addr_default:
+                addr_default.is_default = False
+                addr_default.save()
+
+            new_addr_default = Address.objects.get(id=addr_id)
+            new_addr_default.is_default = True
+            new_addr_default.save()
+
+        return JsonResponse({'status': 0})

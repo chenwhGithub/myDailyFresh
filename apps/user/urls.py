@@ -1,6 +1,6 @@
 from django.urls import path
 from django.conf.urls import url
-from .views import RegisterView, ActiveView, LoginView, LogoutView, InfoView, OrderView, AddressView
+from .views import RegisterView, ActiveView, LoginView, LogoutView, InfoView, OrderView, AddressView, AddressChangeView
 
 app_name = 'user'
 urlpatterns = [
@@ -12,4 +12,5 @@ urlpatterns = [
     path('info', InfoView.as_view(), name='info'),
     path('order/<int:page_num>/', OrderView.as_view(), name='order'),
     path('address', AddressView.as_view(), name='address'),
+    path('addressChange', AddressChangeView.as_view(), name='addressChange'),
 ]

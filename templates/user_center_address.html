@@ -6,15 +6,25 @@
 		<h3 class="common_title2">收货地址</h3>
 		<div class="site_con">
 			<dl>
-				<dt>当前地址：</dt>
+				{% csrf_token %}
 				{% if addr_default %}
-					<dd>{{ addr_default.addr }} {{ addr_default.receiver }} {{ addr_default.phone }}</dd>
-				{% else %}
-					<dd>无默认收货地址</dd>
+					<dd>
+						{{ addr_default.addr }} {{ addr_default.receiver }} {{ addr_default.phone }}
+						<a href="#" addr_id='{{ addr_default.id }}' class="delete">删除地址</a>
+					</dd>
+				{% endif %}
+				{% if addrs_nondefault %}
+					{% for addr_nondefault in addrs_nondefault %}
+					<dd>
+						{{ addr_nondefault.addr }} {{ addr_nondefault.receiver }} {{ addr_nondefault.phone }}
+						<a href="#" addr_id='{{ addr_nondefault.id }}' class="setDefault">设为默认</a>
+						<a href="#" addr_id='{{ addr_nondefault.id }}' class="delete">删除地址</a>
+					</dd>
+					{% endfor %}
 				{% endif %}
 			</dl>
 		</div>
-		<h3 class="common_title2">编辑地址</h3>
+		<h3 class="common_title2">添加地址</h3>
 		<div class="site_con">
 			<form method="post" action="{% url 'user:address' %}">
 				{% csrf_token %}
@@ -41,3 +51,43 @@
 		</div>
 	</div>
 {% endblock right_content %}
+
+{% block bottomfiles %}
+	<script src="{% static 'js/jquery-1.12.4.min.js' %}"></script>
+	<script>
+
+	$(".delete").click(function () {
+		addr_id = $(this).attr("addr_id")
+		csrf = $('input[name="csrfmiddlewaretoken"]').val()
+		params = {
+			'addr_id': addr_id,
+			'change_type': '1', // 1 - 删除该地址
+			'csrfmiddlewaretoken': csrf
+		}
+		$.post('/user/addressChange', params, function (data) {
+			if (data.status == 0) {
+				location.reload()
+			} else {
+				alert(data.errmsg)
+			}
+		})
+	})
+
+	$(".setDefault").click(function () {
+		addr_id = $(this).attr("addr_id")
+		csrf = $('input[name="csrfmiddlewaretoken"]').val()
+		params = {
+			'addr_id': addr_id,
+			'change_type': '0', // 0 - 设为默认地址
+			'csrfmiddlewaretoken': csrf
+		}
+		$.post('/user/addressChange', params, function (data) {
+			if (data.status == 0) {
+				location.reload()
+			} else {
+				alert(data.errmsg)
+			}
+		})
+	})
+	</script>
+{% endblock bottomfiles %}
