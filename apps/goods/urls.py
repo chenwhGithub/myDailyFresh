@@ -6,7 +6,7 @@ from .views import IndexView, DetailView, ListView, GoodsSeachView
 app_name = 'goods'
 urlpatterns = [
     path('', IndexView.as_view(), name='index'),
-    url(r'^goods/(?P<goods_id>\d+)/$', DetailView.as_view(), name='detail'),
-    url(r'^list/(?P<type_id>\d+)/(?P<page_num>\d+)/$', ListView.as_view(), name='list'),
-    url(r'^search/', GoodsSeachView(), name='search'),
+    path('detail/<int:goods_id>', DetailView.as_view(), name='detail'),
+    path('list/<int:type_id>/<int:page_num>', ListView.as_view(), name='list'),
+    path('search/', GoodsSeachView(), name='search'), # / 必需，完整 url = /search/?q=xx
 ]

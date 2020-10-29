@@ -3,17 +3,16 @@ from itsdangerous import TimedJSONWebSignatureSerializer as Serializer, Signatur
 from django.shortcuts import render, redirect
 from django.views.generic import View
 from django.conf import settings
-from django.core.mail import send_mail
 from django.urls import reverse
 from django.http import HttpResponse
 from django.contrib.auth import authenticate, login, logout
 from django.core.paginator import Paginator
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django_redis import get_redis_connection
-from .models import User, Address
 from goods.models import GoodsSKU
 from order.models import OrderInfo, OrderGoods
-from utils.mixin import LoginRequiredMixin
 from celery_tasks.tasks import send_register_active_email
+from .models import User, Address
 
 # Create your views here.
 class RegisterView(View):
@@ -21,7 +20,7 @@ class RegisterView(View):
         ''' 首页点击注册按钮，跳转到 register.html 页面 '''
         return render(request, 'register.html')
 
-    def post(self,request):
+    def post(self, request):
         ''' register.html 页面点击注册按钮，处理表单数据 '''
         uname = request.POST.get('user_name')
         pwd = request.POST.get('pwd')
@@ -49,12 +48,12 @@ class RegisterView(View):
         if user:
             return render(request, 'register.html', {'errmsg': '用户名已存在'})
 
-        user = User.objects.create_user(uname, email, pwd)
+        user = User.objects.create_user(uname, email, pwd) # 内存中创建一条数据表项
         user.is_active = 0 # 用户尚未激活，通过邮件链接激活
-        user.save() # 数据库中增加表项
+        user.save() # 增加数据表项到数据库
 
-        serializer = Serializer(settings.SECRET_KEY, 3600) # 对 user.id 加密后生成激活链接
-        info = {'confirm': user.id}
+        serializer = Serializer(settings.SECRET_KEY, 3600) # 对 user.id 加密后生成激活链接，有效期 3600s
+        info = {'userid': user.id}
         token = serializer.dumps(info)
         send_register_active_email.delay(email, uname, token.decode())
 
@@ -67,7 +66,7 @@ class ActiveView(View):
         serializer = Serializer(settings.SECRET_KEY, 3600)
         try:
             info = serializer.loads(token)
-            user_id = info['confirm']
+            user_id = info['userid']
             user = User.objects.get(id=user_id)
             user.is_active = 1 # 用户已激活
             user.save() # 更新数据库表项信息
@@ -95,6 +94,9 @@ class LoginView(View):
         if not all([uname, pwd]):
             return render(request, 'login.html', {'errmsg': '数据不完整'})
 
+        # 若用户名和密码正确，但未激活，authenticate() 默认返回 None
+        # 通过 settings.py 设置可以取消 authenticate() 激活验证
+        # AUTHENTICATION_BACKENDS = ['django.contrib.auth.backends.AllowAllUsersModelBackend']
         user = authenticate(username=uname, password=pwd)
         if user is not None:
             if user.is_active:
@@ -105,7 +107,7 @@ class LoginView(View):
                     response.set_cookie('username', uname, max_age=7*24*3600) # 记住用户名
                 else:
                     response.delete_cookie('username')
-                return response # 跳转到主页，同时传递 request.user 变量到网页模板文件
+                return response # 跳转到主页，自动传递 request.user 变量到网页模板文件
             else:
                 return render(request, 'login.html', {'errmsg': '账户尚未激活'})
         else:
@@ -114,6 +116,7 @@ class LoginView(View):
 
 class LogoutView(View):
     def get(self, request):
+        ''' 点击退出登录按钮，然后跳转到主页 '''
         logout(request)
         return redirect(reverse('goods:index'))
 
@@ -128,18 +131,18 @@ class InfoView(LoginRequiredMixin, View):
         except Address.DoesNotExist:
             addr_default = None
 
-        con = get_redis_connection('default')
+        con = get_redis_connection('default') # 连接远端 redis 数据库
         history_key = 'history_%d'% user.id
         sku_ids = con.lrange(history_key, 0, 4) # 获取最近的5个浏览商品信息
-        goods_history = []
+        skus = []
         for sku_id in sku_ids:
-            goods = GoodsSKU.objects.get(id=sku_id)
-            goods_history.append(goods)
+            sku = GoodsSKU.objects.get(id=sku_id)
+            skus.append(sku)
 
         context = {
-            'page': 'info',
+            'page_type': 'info',
             'addr_default': addr_default,
-            'goods_history': goods_history,
+            'skus': skus,
         }
         return render(request, 'user_center_info.html', context)
 
@@ -148,23 +151,22 @@ class OrderView(LoginRequiredMixin, View):
     def get(self, request, page_num):
         ''' 点击用户中心-全部订单按钮，跳转到 user_center_order.html 页面 '''
         user = request.user
-        orders = OrderInfo.objects.filter(user=user, is_deleted=0).order_by('-create_time')
-        # 遍历订单头
+        orders = OrderInfo.objects.filter(user=user, is_deleted=0).order_by('-create_time') # - 表示降序排列
         for order in orders:
-            order_skus = OrderGoods.objects.filter(order=order)
-            order.order_skus = order_skus
-            order.status_name = OrderInfo.ORDER_STATUS_DIC[order.order_status]
+            goods_list = OrderGoods.objects.filter(order=order)
+            order.goods_list = goods_list
+            order.status_name = OrderInfo.ORDER_STATUS_DIC[order.status]
             order.pay_method_name = OrderInfo.PAY_METHOD_DIC[order.pay_method]
-            for order_sku in order_skus:
-                amount = order_sku.count * order_sku.price
-                order_sku.amount = amount
+            for goods in goods_list:
+                amount = goods.count * goods.price
+                goods.amount = amount
 
         paginator = Paginator(orders, 2)
         total_page = paginator.num_pages
         page_num = int(page_num)
         if page_num > total_page:
             page_num = 1
-        order_page = paginator.page(page_num)
+        page = paginator.page(page_num)
 
         # 获取显示的页码范围，这里设置只显示三个页码
         page_list = []
@@ -178,9 +180,9 @@ class OrderView(LoginRequiredMixin, View):
             page_list = range(page_num-1, page_num+2)
 
         context = {
-            'order_page': order_page,
+            'page': page,
             'page_list': page_list,
-            'page': 'order',
+            'page_type': 'order',
         }
         return render(request, 'user_center_order.html', context)
 
@@ -195,7 +197,12 @@ class AddressView(LoginRequiredMixin, View):
         except Address.DoesNotExist:
             addr_default = None
 
-        return render(request, 'user_center_address.html', {'page':'address', 'addr_default': addr_default})
+        context = {
+            'page_type': 'address',
+            'addr_default': addr_default,
+        }
+
+        return render(request, 'user_center_address.html', context)
 
     def post(self, request):
         ''' 用户中心-收货地址页面点击提交按钮，处理表单数据 '''
@@ -206,9 +213,6 @@ class AddressView(LoginRequiredMixin, View):
 
         if not all([receiver, addr, phone]):
             return render(request, 'user_center_address.html', {'errmsg': '数据不完整'})
-
-        if not re.match(r'^1[3|4|5|7|8]{0-9}{9}$', phone):
-            return render(request, 'user_center_address.html', {'errmsg': '手机号码格式不正确'})
 
         user = request.user
         addr_default = None

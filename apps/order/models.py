@@ -33,14 +33,14 @@ class OrderInfo(models.Model):
         4: '银联支付',
     }
 
-    order_id = models.CharField(max_length=128, primary_key=True, verbose_name='订单id')
+    order_id = models.CharField(max_length=128, primary_key=True, verbose_name='订单号')
     user = models.ForeignKey('user.User', verbose_name='用户', on_delete=models.CASCADE)
-    addr = models.ForeignKey('user.Address', verbose_name='地址', on_delete=models.CASCADE)
+    addr = models.ForeignKey('user.Address', verbose_name='收货地址', on_delete=models.CASCADE)
     pay_method = models.SmallIntegerField(choices=PAY_METHOD_CHOICES, default=3, verbose_name='支付方式')
     total_count = models.IntegerField(default=1, verbose_name='商品数量')
     total_price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='商品总价')
-    transit_price = models.DecimalField(max_digits=10, decimal_places=2,verbose_name='订单运费')
-    order_status = models.SmallIntegerField(choices=ORDER_STATUS_CHOICES, default=1, verbose_name='订单状态')
+    transit_price = models.DecimalField(max_digits=10, decimal_places=2,verbose_name='运费')
+    status = models.SmallIntegerField(choices=ORDER_STATUS_CHOICES, default=1, verbose_name='订单状态')
     trade_no = models.CharField(max_length=128, default="", verbose_name='支付编号')
     create_time = models.DateTimeField(auto_now_add=True, verbose_name="创建时间")
     is_deleted = models.BooleanField(default=False, verbose_name="是否被删除")

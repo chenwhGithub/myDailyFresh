@@ -63,7 +63,7 @@
 			</div>
 
 			<ul class="goods_type_list clearfix">
-				{% for sku in skus_page %}
+				{% for sku in page %}
 					<li>
 						<a href="{% url 'goods:detail' sku.id %}"><img src="{{ sku.image.url }}"></a>
 						<h4><a href="{% url 'goods:detail' sku.id %}">{{ sku.name }}</a></h4>
@@ -78,14 +78,14 @@
 			</ul>
 
 			<div class="pagenation">
-				{% if skus_page.has_previous %}
-					<a href="{% url 'goods:list' type.id skus_page.previous_page_number %}?sort={{ sort }}">&lt;上一页</a>
+				{% if page.has_previous %}
+					<a href="{% url 'goods:list' type.id page.previous_page_number %}?sort={{ sort }}">&lt;上一页</a>
 				{% endif %}
 				{% for num in page_list %}
-					<a href="{% url 'goods:list' type.id num %}?sort={{ sort }}" {% if num == skus_page.number %} class="active" {% endif %}>{{ num }}</a>
+					<a href="{% url 'goods:list' type.id num %}?sort={{ sort }}" {% if num == page.number %} class="active" {% endif %}>{{ num }}</a>
 				{% endfor %}
-				{% if skus_page.has_next %}
-					<a href="{% url 'goods:list' type.id skus_page.next_page_number %}?sort={{ sort }}">下一页></a>
+				{% if page.has_next %}
+					<a href="{% url 'goods:list' type.id page.next_page_number %}?sort={{ sort }}">下一页></a>
 				{% endif %}
 			</div>
 		</div>

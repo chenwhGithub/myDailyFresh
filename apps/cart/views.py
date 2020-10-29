@@ -1,14 +1,14 @@
 from django.shortcuts import render
 from django.views.generic import View
 from django.http import JsonResponse
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django_redis import get_redis_connection
-from utils.mixin import LoginRequiredMixin
 from goods.models import GoodsSKU
 
 # Create your views here.
-class InfoView(LoginRequiredMixin , View):
-    ''' 购物车页面显示 '''
+class InfoView(LoginRequiredMixin, View):
     def get(self, request):
+        ''' 主页点击我的购物车，跳转到 cart.html 页面 '''
         user = request.user
         conn = get_redis_connection('default')
         cart_key = 'cart_%d'%user.id
@@ -22,7 +22,7 @@ class InfoView(LoginRequiredMixin , View):
             sku = GoodsSKU.objects.get(id=sku_id)
             cnt = int(count)
             amount = sku.price * cnt
-            sku.amount = amount # 动态增加属性
+            sku.amount = amount
             sku.count = cnt
             skus.append(sku)
 
@@ -39,8 +39,8 @@ class InfoView(LoginRequiredMixin , View):
 
 
 class UpdateView(View):
-    ''' 更新购物车信息 '''
     def post(self, request):
+        ''' 更新购物车信息 '''
         user = request.user
         if not user.is_authenticated:
             return JsonResponse({'status':1, 'errmsg':'请先登录'})
@@ -76,8 +76,8 @@ class DeleteView(View):
 
 
 class AddView(View):
-    ''' 添加购物车信息 '''
     def post(self, request):
+        ''' 添加购物车信息 '''
         user = request.user
         if not user.is_authenticated:
             return JsonResponse({'status':1, 'errmsg':'请先登录'})

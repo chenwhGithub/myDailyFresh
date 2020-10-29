@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.core.cache import cache
-from .models import GoodsType, GoodsSKU, Goods, GoodsImage, IndexGoodsBanner, IndexTypeGoodsBanner, IndexPromotionBanner
+from .models import GoodsType, GoodsSKU, Goods, IndexGoodsBanner, IndexTypeGoodsBanner, IndexPromotionBanner
 
 # Register your models here.
 class BaseModelAdmin(admin.ModelAdmin):
@@ -16,7 +16,6 @@ class BaseModelAdmin(admin.ModelAdmin):
 admin.site.register(GoodsType, BaseModelAdmin)
 admin.site.register(GoodsSKU, BaseModelAdmin)
 admin.site.register(Goods, BaseModelAdmin)
-admin.site.register(GoodsImage, BaseModelAdmin)
 admin.site.register(IndexGoodsBanner, BaseModelAdmin)
 admin.site.register(IndexTypeGoodsBanner, BaseModelAdmin)
 admin.site.register(IndexPromotionBanner, BaseModelAdmin)

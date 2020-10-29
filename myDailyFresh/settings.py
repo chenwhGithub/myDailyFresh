@@ -44,7 +44,7 @@ INSTALLED_APPS = [
     'goods',
     'order',
     'user',
-    'ckeditor', # pip install django-ckeditor 富文本类型支持
+    'ckeditor', # pip install django-ckeditor 富文本类型支持，提供 RichTextField 字段类型
     'haystack', # pip install django-haystack 搜索框架
 ]
 
@@ -130,7 +130,7 @@ STATIC_URL = '/static/'
 
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 
-# django 认证系统使用的模型类
+# django 用户认证系统使用的数据表类
 AUTH_USER_MODEL = 'user.User'
 
 
@@ -147,7 +147,7 @@ EMAIL_FROM = 'myDailyFresh<229306062@qq.com>'
 LOGIN_URL = '/user/login'
 
 
-# 使用 redis 作为缓存
+# pip install django-redis，使用 redis 作为缓存
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",

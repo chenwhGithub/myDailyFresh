@@ -1,11 +1,11 @@
 from django.shortcuts import render
 from django.views.generic import View
-from django_redis import get_redis_connection
 from django.core.paginator import Paginator
 from django.core.cache import cache
+from django_redis import get_redis_connection
 from haystack.views import SearchView
-from .models import GoodsType, GoodsSKU, IndexGoodsBanner, IndexPromotionBanner, IndexTypeGoodsBanner
 from order.models import OrderGoods
+from .models import GoodsType, GoodsSKU, IndexGoodsBanner, IndexPromotionBanner, IndexTypeGoodsBanner
 
 
 def get_index_data():
@@ -36,7 +36,7 @@ class IndexView(View):
         context = cache.get('index_data')
         if not context:
             context = get_index_data()
-            cache.set('index_data', context, 2*3600) # 设置缓冲生存周期单位秒
+            cache.set('index_data', context, 2*3600) # 设置缓冲生存周期，单位秒
 
         user = request.user
         cart_count = 0
@@ -50,8 +50,8 @@ class IndexView(View):
 
 
 class DetailView(View):
-    '''点击商品图片，跳转到 detal.html 详情页面'''
     def get(self, request, goods_id):
+        ''' 点击商品图片，跳转到 detal.html 详情页面 '''
         types = GoodsType.objects.all()
         sku = GoodsSKU.objects.get(id=goods_id)
         order_goods_list = OrderGoods.objects.filter(sku=sku).exclude(comment="")
@@ -79,24 +79,24 @@ class DetailView(View):
 
 # /list/type_id/page_num?sort='default'
 class ListView(View):
-    ''' 商品列表页 '''
     def get(self, request, type_id, page_num):
+        ''' 首页点击更多按钮，跳转到商品列表页 '''
         sort_dic = {
             'price': 'price',
-            'hot': '-sales', # - 表示降序排列
+            'hot': '-sales',
             'default': '-id',
         }
         types = GoodsType.objects.all()
         type_cur = GoodsType.objects.get(id=type_id)
         sort = request.GET.get('sort')
-        sku_list = GoodsSKU.objects.filter(type=type_cur).order_by(sort_dic[sort])
+        skus = GoodsSKU.objects.filter(type=type_cur).order_by(sort_dic[sort])
 
-        paginator = Paginator(sku_list, 2) # 每页显示两条记录
+        paginator = Paginator(skus, 2) # 每页显示两条记录
         total_page = paginator.num_pages # 总的页数
         page_num = int(page_num)
         if page_num > total_page:
             page_num = 1
-        skus_page = paginator.page(page_num) # 当前页的 page 对象
+        page = paginator.page(page_num) # 当前页的 page 对象
 
         # 获取显示的页码范围，这里设置只显示三个页码
         page_list = []
@@ -119,7 +119,7 @@ class ListView(View):
         context = {
             'types': types,
             'type': type_cur,
-            'skus_page': skus_page,
+            'page': page,
             'page_list': page_list,
             'sort': sort,
             'cart_count': cart_count,
@@ -138,8 +138,7 @@ class GoodsSeachView(SearchView):
             'page': page, # 当前页的page对象，遍历page对象，获取到的是SearchResult类的实例对象，对象的属性object才是模型类的对象
             'paginator': paginator, # 分页paginator对象
             'suggestion': None,
-        }
-        """
+        } """
         context = super(GoodsSeachView, self).extra_context()
 
         user = self.request.user
@@ -150,7 +149,7 @@ class GoodsSeachView(SearchView):
             cart_key = "cart_%d"%user.id
             cart_count = conn.hlen(cart_key)
 
-        # 添加上下文字段
+        # 添加自定义字段传递给 search.html
         context['types'] = types
         context['cart_count'] = cart_count
         return context

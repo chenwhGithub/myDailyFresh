@@ -23,7 +23,7 @@
 					<a href="{% url 'user:register' %}">立即注册</a>
 				</div>
 				<div class="form_input">
-					<form method="post" action="/user/login">
+					<form method="post" action="{% url 'user:login' %}">
 						{% csrf_token %}
 						<input type="text" name="username" class="name_input" placeholder="请输入用户名" value="{{ username }}">
 						<div class="user_error">输入错误</div>

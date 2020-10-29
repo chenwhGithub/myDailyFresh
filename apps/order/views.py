@@ -6,6 +6,7 @@ from django.views import View
 from django.db import transaction
 from django.http import JsonResponse
 from django.conf import settings
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django_redis import get_redis_connection
 from alipay.aop.api.AlipayClientConfig import AlipayClientConfig
 from alipay.aop.api.DefaultAlipayClient import DefaultAlipayClient
@@ -13,7 +14,6 @@ from alipay.aop.api.domain.AlipayTradePagePayModel import AlipayTradePagePayMode
 from alipay.aop.api.request.AlipayTradePagePayRequest import AlipayTradePagePayRequest
 from alipay.aop.api.domain.AlipayTradeQueryModel import AlipayTradeQueryModel
 from alipay.aop.api.request.AlipayTradeQueryRequest import AlipayTradeQueryRequest
-from utils.mixin import LoginRequiredMixin
 from goods.models import GoodsSKU
 from user.models import Address
 from .models import OrderInfo, OrderGoods
@@ -195,8 +195,8 @@ def alipay_query(order):
 
 
 class PayView(View):
-    ''' 支付宝订单支付 '''
     def post(self, request):
+        ''' 支付宝订单支付 '''
         user = request.user
         if not user.is_authenticated:
             return JsonResponse({'status':1, 'errmsg': '用户未登录'})
@@ -205,14 +205,14 @@ class PayView(View):
         order = OrderInfo.objects.get(order_id=order_id,
                                       user=user,
                                       pay_method=3,
-                                      order_status=1)
+                                      status=1)
         pay_url = alipay_pay(order)
         return JsonResponse({'status':0, 'pay_url':pay_url})
 
 
 class QueryView(View):
-    ''' 支付宝支付结果查询 '''
     def post(self, request):
+        ''' 支付宝支付结果查询 '''
         user = request.user
         if not user.is_authenticated:
             return JsonResponse({'status':1, 'errmsg': '用户未登录'})
@@ -222,22 +222,22 @@ class QueryView(View):
         context = alipay_query(order)
         if context['status'] == 0:
             order.trade_no = context['trade_no']
-            order.order_status = 4 # 待评价
+            order.status = 4 # 待评价
             order.save()
         print('context: %s'%(str(context)))
         return JsonResponse(context)
 
 
 class CommentView(LoginRequiredMixin, View):
-    ''' 订单评价视图 '''
     def get(self, request, order_id):
+        ''' 订单评价视图 '''
         user = request.user
         order = OrderInfo.objects.get(order_id=order_id, user=user)
         order_goods_list = OrderGoods.objects.filter(order=order)
         for order_goods in order_goods_list:
             order_goods.amount = order_goods.count * order_goods.price
         order.order_goods_list = order_goods_list
-        order.status_name = OrderInfo.ORDER_STATUS_DIC[order.order_status]
+        order.status_name = OrderInfo.ORDER_STATUS_DIC[order.status]
         return render(request, 'order_comment.html', {'order': order})
 
     def post(self, request, order_id):
@@ -253,6 +253,6 @@ class CommentView(LoginRequiredMixin, View):
             order_goods.comment = comment
             order_goods.save()
 
-        order.order_status = 5
+        order.status = 5
         order.save()
         return redirect(reverse('user:order', kwargs={'page_num': 1}))

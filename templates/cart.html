@@ -65,7 +65,7 @@
     <script>
         // 全选 checkbox 按钮变化
         $(".settlements").find(':checkbox').change(function () {
-            is_checked = $(this).prop('checked') //获取全选的选中状态
+            is_checked = $(this).prop('checked') // 获取全选的选中状态
             $('.cart_list_td').find(':checkbox').each(function () { // 遍历所有商品的选中状态，设置为 is_checked 状态
                 $(this).prop('checked', is_checked)
             })

@@ -8,7 +8,7 @@
 			<dl>
 				<dt>当前地址：</dt>
 				{% if addr_default %}
-					<dd>{{ addr_default.addr }} {{ addr_default.receiver }} 收 {{ addr_default.phone }}</dd>
+					<dd>{{ addr_default.addr }} {{ addr_default.receiver }} {{ addr_default.phone }}</dd>
 				{% else %}
 					<dd>无默认收货地址</dd>
 				{% endif %}
@@ -16,7 +16,7 @@
 		</div>
 		<h3 class="common_title2">编辑地址</h3>
 		<div class="site_con">
-			<form method="post" action="/user/address">
+			<form method="post" action="{% url 'user:address' %}">
 				{% csrf_token %}
 				<div class="form_group">
 					<label>收件人：</label>

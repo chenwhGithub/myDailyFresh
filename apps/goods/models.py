@@ -6,7 +6,7 @@ class GoodsType(models.Model):
     '''商品类型模型类'''
     name = models.CharField(max_length=20, verbose_name='种类名称')
     logo = models.CharField(max_length=20, verbose_name='标识')
-    # settings.MEDIA_ROOT(media) 目录下生成 type 文件夹，用于保存上传的图片，image 存储 media 目录下图片保存的路径
+    # settings.MEDIA_ROOT(media) 目录下生成 type 文件夹，用于保存上传的图片，image 字段存储 media 目录下图片保存的路径
     image = models.ImageField(upload_to='type', verbose_name='商品类型图片')
 
     class Meta:
@@ -56,17 +56,6 @@ class Goods(models.Model):
 
     def __str__(self):
         return self.name
-
-
-class GoodsImage(models.Model):
-    '''商品图片模型类'''
-    sku = models.ForeignKey('GoodsSKU', verbose_name='商品', on_delete=models.CASCADE)
-    image = models.ImageField(upload_to='goods', verbose_name='图片路径')
-
-    class Meta:
-        db_table = 'df_goods_image'
-        verbose_name = '商品图片'
-        verbose_name_plural = verbose_name
 
 
 class IndexGoodsBanner(models.Model):
