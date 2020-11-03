@@ -224,7 +224,6 @@ class QueryView(View):
             order.trade_no = context['trade_no']
             order.status = 4 # 待评价
             order.save()
-        print('context: %s'%(str(context)))
         return JsonResponse(context)
 
 

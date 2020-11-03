@@ -164,7 +164,7 @@ class OrderView(LoginRequiredMixin, View):
 
         paginator = Paginator(orders, 2)
         total_page = paginator.num_pages
-        page_num = int(page_num)
+        # page_num = int(page_num) # url 匹配后返回到 Views 的就是 int
         if page_num > total_page:
             page_num = 1
         page = paginator.page(page_num)
