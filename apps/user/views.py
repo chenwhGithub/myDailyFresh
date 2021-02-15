@@ -9,10 +9,21 @@ from django.contrib.auth import authenticate, login, logout
 from django.core.paginator import Paginator
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django_redis import get_redis_connection
+from django.core.mail import send_mail
 from goods.models import GoodsSKU
 from order.models import OrderInfo, OrderGoods
-from celery_tasks.tasks import send_register_active_email
 from .models import User, Address
+
+
+def send_register_active_email(to_email, uname, token):
+    '''发送激活邮件'''
+    subject = '天天生鲜欢迎信息'
+    message = '' # 邮件内容，会被 html_message 覆盖
+    sender = settings.EMAIL_FROM
+    receiver = [to_email]
+    html_message = '<h1>%s, 欢迎您成为天天生鲜注册会员</h1>请点击下面链接激活您的账户<br/><br>　<a href="http://127.0.0.1:8000/user/active/%s">http://127.0.0.1:8000/user/active/%s</a>'%(uname, token, token)
+    send_mail(subject, message=message, from_email=sender, recipient_list=receiver, html_message=html_message)
+
 
 # Create your views here.
 class RegisterView(View):
@@ -55,7 +66,7 @@ class RegisterView(View):
         serializer = Serializer(settings.SECRET_KEY, 3600) # 对 user.id 加密后生成激活链接，有效期 3600s
         info = {'userid': user.id}
         token = serializer.dumps(info)
-        send_register_active_email.delay(email, uname, token.decode())
+        send_register_active_email(email, uname, token.decode())
 
         return redirect(reverse('goods:index'))
 
