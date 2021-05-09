@@ -120,6 +120,7 @@ USE_I18N = True
 
 USE_L10N = True
 
+# 数据库时间相关字段使用本地时区
 USE_TZ = False
 
 
