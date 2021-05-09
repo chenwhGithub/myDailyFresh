@@ -6,6 +6,8 @@ from django.conf import settings
 from django.urls import reverse
 from django.http import HttpResponse, JsonResponse
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.backends import ModelBackend
+from django.db.models import Q
 from django.core.paginator import Paginator
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django_redis import get_redis_connection
@@ -23,6 +25,19 @@ def send_register_active_email(to_email, uname, token):
     receiver = [to_email]
     html_message = '<h1>%s, 欢迎您成为天天生鲜注册会员</h1>请点击下面链接激活您的账户<br/><br>　<a href="http://127.0.0.1:8000/user/active/%s">http://127.0.0.1:8000/user/active/%s</a>'%(uname, token, token)
     send_mail(subject, message=message, from_email=sender, recipient_list=receiver, html_message=html_message)
+
+
+# 重载基类 authenticate 方法
+class CustomBackend(ModelBackend):
+    def authenticate(self, request, username=None, password=None, **kwargs):
+        try:
+            # get 只能获取一个，如果有两个相同用户名或邮箱则异常，Q 为使用并集查询
+            user = User.objects.get(Q(username=username) | Q(email=username))
+            # 因为 django 对密码有加密，所以不能简单判断 password==password
+            if user.check_password(password):
+                return user
+        except Exception as e:
+            return None
 
 
 # Create your views here.

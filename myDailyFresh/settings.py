@@ -185,3 +185,8 @@ HAYSTACK_CONNECTIONS = {
 HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'
 # 设置每页显示的数目，默认为20
 HAYSTACK_SEARCH_RESULTS_PER_PAGE = 5
+
+# 当登录时使用自定义方法验证用户名和密码
+AUTHENTICATION_BACKENDS = (
+    'user.views.CustomBackend',
+)
