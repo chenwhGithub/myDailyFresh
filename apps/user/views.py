@@ -15,6 +15,7 @@ from django.core.mail import send_mail
 from goods.models import GoodsSKU
 from order.models import OrderInfo, OrderGoods
 from .models import User, Address
+from .forms import LoginForm
 
 
 def send_register_active_email(to_email, uname, token):
@@ -113,31 +114,30 @@ class LoginView(View):
 
     def post(self, request):
         ''' login.html 页面点击登录按钮，处理表单数据 '''
-        uname = request.POST.get('username')
-        pwd = request.POST.get('pwd')
-        rmb = request.POST.get('remember')
-
-        if not all([uname, pwd]):
-            return render(request, 'login.html', {'errmsg': '数据不完整'})
-
-        # 若用户名和密码正确，但未激活，authenticate() 默认返回 None
-        # 通过 settings.py 设置可以取消 authenticate() 激活验证
-        # AUTHENTICATION_BACKENDS = ['django.contrib.auth.backends.AllowAllUsersModelBackend']
-        user = authenticate(username=uname, password=pwd)
-        if user is not None:
-            if user.is_active:
-                login(request, user)
-                next_url = request.GET.get('next', reverse('goods:index'))
-                response = redirect(next_url)
-                if rmb == 'on':
-                    response.set_cookie('username', uname, max_age=7*24*3600) # 记住用户名
-                else:
-                    response.delete_cookie('username')
-                return response # 跳转到主页，自动传递 request.user 变量到网页模板文件
-            else:
-                return render(request, 'login.html', {'errmsg': '账户尚未激活'})
-        else:
-            return render(request, 'login.html', {'errmsg': '用户名或密码错误'})
+        login_form = LoginForm(request.POST)
+        # 首先进行表单中定义的静态规则校验，然后进入业务逻辑校验
+        if login_form.is_valid():
+            uname = login_form.cleaned_data['username']
+            pwd = login_form.cleaned_data['pwd']
+            rmb = request.POST.get('remember')
+            # 若用户名和密码正确，但未激活，authenticate() 默认返回 None
+            # 通过 settings.py 设置可以取消 authenticate() 激活验证
+            # AUTHENTICATION_BACKENDS = ['django.contrib.auth.backends.AllowAllUsersModelBackend']
+            user = authenticate(username=uname, password=pwd)
+            if user is not None:
+                if user.is_active:
+                    login(request, user)
+                    next_url = request.GET.get('next', reverse('goods:index'))
+                    response = redirect(next_url)
+                    if rmb == 'on':
+                        response.set_cookie('username', uname, max_age=7*24*3600) # 记住用户名
+                    else:
+                        response.delete_cookie('username')
+                    return response # 跳转到主页，自动传递 request.user 变量到网页模板文件
+                return render(request, 'login.html', {'errmsg': '账户尚未激活', 'login_form':login_form})
+            return render(request, 'login.html', {'errmsg': '用户名或密码错误', 'login_form':login_form})
+        # 如果静态校验不通过，直接返回表单内容，表单内容包含错误信息
+        return render(request, 'login.html', {'login_form':login_form})
 
 
 class LogoutView(View):
