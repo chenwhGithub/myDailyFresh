@@ -46,6 +46,8 @@ INSTALLED_APPS = [
     'user',
     'ckeditor', # pip install django-ckeditor 富文本类型支持，提供 RichTextField 字段类型
     'haystack', # pip install django-haystack 搜索框架
+    'xadmin',   # xadmin 后台管理
+    'crispy_forms',
 ]
 
 MIDDLEWARE = [
