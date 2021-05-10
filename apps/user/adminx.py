@@ -11,6 +11,7 @@ class AddressAdmin(object):
     readonly_fields = ['receiver', 'zip_code'] # 设置只读字段
     list_editable = ['addr', 'zip_code', 'phone'] # 设置可编辑字段
     refresh_times = [3, 5] # 设置页面自动刷新，单位 秒
+    model_icon = 'fa fa-address-card' # 设置数据表图标，http://www.fontawesome.com.cn/faicons/
 
 
 class BaseSettings(object):
