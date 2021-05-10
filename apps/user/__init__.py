@@ -1,0 +1,1 @@
+default_app_config = 'user.apps.UserConfig' # 设置 APP 后台显示的名称
